@@ -88,7 +88,7 @@ h1 {
 }
 
 .wrong-letter {
-  background-color: red;
+  background-color: rgb(169, 168, 168);
 }
 
 .wrong-place {
@@ -96,7 +96,7 @@ h1 {
 }
 
 .correct {
-  background-color: rgb(211, 213, 211);
+  background-color: green;
 }
 
 

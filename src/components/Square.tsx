@@ -1,15 +1,19 @@
-import { KeyboardEventHandler, useState } from "react"
+import { useState } from "react";
 
-const Square = ( {identifier : _identifier , state = ""} : { identifier : number , state : "" | "wrong-letter" | "wrong-place" | "correct"  }) => {
-
-  const [letter, _ ] = useState<string>("");
+const Square = ({
+  identifier: _identifier,
+  state = "",
+}: {
+  identifier: number;
+  state: "" | "wrong-letter" | "wrong-place" | "correct";
+}) => {
+  const [letter, _] = useState<string>("");
 
   return (
-    <div className={`square ${state}`} key={_identifier} onClick={() => { }}>
+    <div className={`square ${state}`} key={_identifier} onClick={() => {}}>
       {letter.toLocaleUpperCase()}
     </div>
-  )
-}
+  );
+};
 
-export default Square
-
+export default Square;
