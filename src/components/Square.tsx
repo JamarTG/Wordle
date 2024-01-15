@@ -1,18 +1,13 @@
-import { useState } from "react"
-const Square = () => {
+import { KeyboardEventHandler, useState } from "react"
 
-  const [color, setColor] = useState();
-  const [letter, setLetter] = useState();
+const Square = ( {identifier : _identifier , state = ""} : { identifier : number , state : "" | "wrong-letter" | "wrong-place" | "correct"  }) => {
+
+  const [letter, _ ] = useState<string>("");
 
   return (
-    <button className="square" onClick={() => {
-      console.log("color should be", color);
-      console.log("letter should be Letter")
-    }}>
-      
-      {letter}
-      {color}
-    </button>
+    <div className={`square ${state}`} key={_identifier} onClick={() => { }}>
+      {letter.toLocaleUpperCase()}
+    </div>
   )
 }
 

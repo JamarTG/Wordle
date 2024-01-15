@@ -37,14 +37,20 @@ h1 {
 
 
 .square {
+  animation-name: flip;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   padding: .9rem;
-  border: none;
+
   outline: none;
   font-size: 50px;
   font-weight: bolder;
-  width: 5rem;
-  height: 5rem;
-  border: 3px solid transparent;
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgb(192, 191, 191);
+
 }
 
 .incorrect-letter {
@@ -60,10 +66,7 @@ h1 {
 .correct {
   background-color: rgb(182, 226, 116);
 }
-.square:hover{
-  border: 3px solid rgb(111, 199, 226);
-  box-sizing: border-box;
-}
+
 .square:focus{
   border: 3px solid rgb(111, 199, 226);
   box-sizing: border-box;
@@ -71,6 +74,8 @@ h1 {
 .square:active{
   border: 2px solid rgb(111, 199, 226);
 }
+
+
 #grid {
   display: grid;
   justify-content: center;
@@ -80,4 +85,26 @@ h1 {
   border: 3px solid #eee;
   border-radius: .4rem;
   padding: .5em;
+}
+
+.wrong-letter {
+  background-color: red;
+}
+
+.wrong-place {
+  background-color: orange;
+}
+
+.correct {
+  background-color: green;
+}
+
+
+
+.square:hover {
+  animation-duration: 5s;
+}
+
+.message-h1 {
+  height: 2rem;
 }
