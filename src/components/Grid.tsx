@@ -79,11 +79,9 @@ const Grid = () => {
       }
       setCurrentSquareIndex((prevSquareIndex) => prevSquareIndex + 1);
     };
-
-    // Not the 'reactive' way of doing this
+    
     document.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup necessary to avoid memory leaks
+    
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
