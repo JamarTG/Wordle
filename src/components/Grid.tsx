@@ -1,9 +1,13 @@
 import Square from "./Square";
 import wordFetcher from "../utils/wordFetcher";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect, useRef} from "react";
+import { useState, useEffect, useRef } from "react";
+import wordSet from "../utils/wordSet";
+import wordleSolver from "../utils/wordleSolver";
 
 const Grid = () => {
+
+
 
   // Standard way of dealing with data fetching superior to using useEffects
   const { data: word, isLoading, error } = useQuery({
@@ -14,41 +18,43 @@ const Grid = () => {
   const gridContainerRef = useRef<HTMLElement>(null);
   const [currentSquareIndex, setCurrentSquareIndex] = useState<number>(0);
   const [userWord, setUserWord] = useState<string>("");
+  const [gameOver, setGameOver] = useState<"won" | "lost" | "">("");
+  const [compDataSet, setCompDataSet] = useState<string[]>(wordSet);
 
-  const [gameOver , setGameOver] = useState<"won" | "lost" | "">("");
+  const evaluateWordCorrectness = (userWord: string, correctWord: string) => {
+
+    let allCorrect = true;
+    const correctWordArray = Array.from(correctWord);
+    const userWordArray = Array.from(userWord);
+
+    const squareStats: ("correct" | "wrong-place" | "wrong-letter")[] = userWordArray.map((letter, index) => {
+
+      const isCorrectLetter = correctWordArray.includes(letter);
+
+      if (isCorrectLetter) {
+        const isCorrectLetterAndPlace = correctWord[index] == letter;
+
+        if (isCorrectLetterAndPlace) {
+          return "correct"
+        } else {
+          allCorrect = false;
+          return "wrong-place"
+
+        }
+
+      } else {
+        allCorrect = false;
+        return "wrong-letter"
+      }
+    })
+
+    return { squareStats, allCorrect };
+
+  }
 
   useEffect(() => {
 
-    const evaluateWordCorrectness = (userWord: string, correctWord: string) => {
 
-      let allCorrect = true;
-      const correctWordArray = Array.from(correctWord);
-      const userWordArray = Array.from(userWord);
-
-      const squareStats: ("correct" | "wrong-place" | "wrong-letter")[] = userWordArray.map((letter, index) => {
-
-        const isCorrectLetter = correctWordArray.includes(letter);
-
-        if (isCorrectLetter) {
-          const isCorrectLetterAndPlace = correctWord[index] == letter;
-
-          if (isCorrectLetterAndPlace) {
-            return "correct"
-          } else {
-            allCorrect = false;
-            return "wrong-place"
-
-          }
-
-        } else {
-          allCorrect = false;
-          return "wrong-letter"
-        }
-      })
-
-      return {squareStats , allCorrect };
-
-    }
 
     // Use named function when using this method to allow cleanup
 
@@ -72,8 +78,8 @@ const Grid = () => {
       if ((currentSquareIndex + 1) % (5) === 0 && currentSquareIndex) {
 
 
-      
-        const {squareStats : statArray, allCorrect } = evaluateWordCorrectness(userWord + event.key, word);
+
+        const { squareStats: statArray, allCorrect } = evaluateWordCorrectness(userWord + event.key, word as string);
 
         const front = currentSquareIndex - 4;
 
@@ -82,8 +88,8 @@ const Grid = () => {
         })
 
         setGameOver(allCorrect ? "won" : "");
-        
-        if(currentSquareIndex === 24 && !allCorrect) {
+
+        if (currentSquareIndex === 24 && !allCorrect) {
           setGameOver("lost");
         }
 
@@ -94,7 +100,7 @@ const Grid = () => {
       setCurrentSquareIndex(prevSquareIndex => prevSquareIndex + 1);
 
     }
-    
+
 
 
     // Not the 'reactive' way of doing this
@@ -107,18 +113,44 @@ const Grid = () => {
 
   }, [currentSquareIndex]);
 
+  const computerSolve = () => {
+    const iterativeSolver = (newWord:string , computerSquareIndex: number, activeStateOfWords:string[] = wordSet) => {
+      Array.from(newWord).forEach(letter => {
+        const targetComponent = gridContainerRef.current?.children[computerSquareIndex];
+        if (targetComponent) {
+          targetComponent.innerHTML = letter;
+        }
+        computerSquareIndex++;
+      })
+     
+      const { squareStats: statArray, allCorrect } = evaluateWordCorrectness(newWord, word as string)
 
+      const front = computerSquareIndex - 5;
 
-  // Just a regular if statement
+      statArray.map((status: string, index: number) => {
+        gridContainerRef.current?.children[front + index].classList.add(status);
+      })
+
+  
+      const retryInfo = wordleSolver(newWord, statArray, activeStateOfWords)
+
+      if(!allCorrect && computerSquareIndex < 25) {
+        iterativeSolver(retryInfo.retryWord , computerSquareIndex, retryInfo.wordSet);
+      }
+
+    }
+
+    iterativeSolver("false", 0);
+
+  }
+
   if (isLoading) { return <div>Loading ... </div>; }
   else if (error) { return <div>Error Fetching Word :|</div> }
- 
+
   return (
     <>
-
-    <h2 className="message-h1">{gameOver === "won" ? "You win :)" : gameOver === "lost" ? "you lose :(" : ""}</h2>
-      
-     
+      <button onClick={computerSolve}>Let Computer Solve</button>
+      <h2 className="message-h1">{gameOver === "won" ? "You win :)" : gameOver === "lost" ? "you lose :(" : ""}</h2>
       <main id="grid" ref={gridContainerRef} key={0}>
         {/* Unable to use `map` as the squares are not stored */}
         {Array.from({ length: 25 }, (_, index) => (<Square state={""} key={index} identifier={index} />))}

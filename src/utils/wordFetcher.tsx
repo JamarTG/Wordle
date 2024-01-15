@@ -1,16 +1,18 @@
 import axios from "axios"
-
+import wordSet from './wordSet'
 const wordFetcher = async () => {
 
   try {
-    const word = await axios.request({
-      method: 'GET',
-      url: 'https://random-word-api.herokuapp.com/word?length=5'
-    });
+    // const word = await axios.request({
+    //   method: 'GET',
+    //   url: ''
+    // });
+
+    // console.log(word);
   
-    const theWord = word.data.join("").toString()
-    console.log(theWord);
-    return theWord;
+    const word = wordSet[Math.floor(Math.random() * wordSet.length)] 
+    console.log(word);
+    return word;
   }
   catch (error) {
     throw new Error("Unable to fetch words :(");
