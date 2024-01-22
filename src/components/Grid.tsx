@@ -1,130 +1,130 @@
-import Square from "./Square";
-import wordFetcher from "../utils/wordFetcher";
-import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
+import Message from "./Message";
 import wordSet from "../utils/wordSet";
 import wordleSolver from "../utils/wordleSolver";
+import React from "react";
+import useWordQuery from "./hooks/useWordQuery";
+import { Feedback, GameStatus } from "../utils/types";
+import Tile from "./Tile";
+import checkLetterAgainstSecret from "../utils/checkLetterAgainstSecret";
+
+// const stringToCharacters = (str: string) => {
+//   return Array.from(str);
+// };
+
+// const createIterableDomElements = (domElement: HTMLElement): Element[] => {
+//   return Array.from(domElement.children);
+// };
 
 const Grid = () => {
-  const gridContainerRef = useRef<HTMLElement>(null);
-  const [currentSquareIndex, setCurrentSquareIndex] = useState<number>(0);
+  const wordleGrid = useRef<HTMLElement>(null);
+  const [wordleTileIndex, setWordleTileIndex] = useState<number>(0);
   const [userWord, setUserWord] = useState<string>("");
-  const [gameOver, setGameOver] = useState<"won" | "lost" | "">("");
+  const [gameOver, setGameOver] = useState<GameStatus>("");
 
-  const {
-    data: word,
-    isLoading,
-    error,
-  } = useQuery({
-    queryFn: wordFetcher,
-    queryKey: ["word"],
-    refetchOnWindowFocus: false,
-  });
+  const { data: secretWord, isLoading, error } = useWordQuery();
 
-  const evaluateWordCorrectness = (userWord: string, correctWord: string) => {
-    let allCorrect = true;
-    const correctWordArray = Array.from(correctWord);
-    const userWordArray = Array.from(userWord);
-    const squareStats: ("correct" | "wrong-place" | "wrong-letter")[] =
-      userWordArray.map((letter, index) => {
-        const isCorrectLetter = correctWordArray.includes(letter);
-        if (isCorrectLetter) {
-          const isCorrectLetterAndPlace = correctWord[index] == letter;
-          if (isCorrectLetterAndPlace) {
-            return "correct";
-          } else {
-            allCorrect = false;
-            return "wrong-place";
-          }
-        } else {
-          allCorrect = false;
-          return "wrong-letter";
-        }
-      });
-    return { squareStats, allCorrect };
+  const evaluateWordCorrectness = (userWord: string, secretWord: string) => {
+    const feedbackArray: Feedback[] = Array.from(userWord).map(
+      (userGuessedLetter, index) => {
+        return checkLetterAgainstSecret(
+          secretWord,
+          secretWord.charAt(index),
+          userGuessedLetter
+        );
+      }
+    );
+
+    const squares = Array.from(wordleGrid.current?.children!).slice(
+      wordleTileIndex - 4,
+      wordleTileIndex + 1
+    );
+
+    Array.from(squares).map((square, _) => {});
+
+    return {
+      feedbackArray,
+      isAllLettersCorrect: feedbackArray.every(
+        (feedback) => feedback === "correct"
+      ),
+    };
   };
 
   useEffect(() => {
     type CustomKeyboardEvent = KeyboardEvent & { key: string };
-    const handleKeyDown = (event: CustomKeyboardEvent) => {
-      if (!/^[a-zA-Z]$/.test(event.key) || gameOver != "") {
+    const handleKeyDown = ({ key }: CustomKeyboardEvent) => {
+      const shouldRejectKeyStroke = !/^[a-zA-Z]$/.test(key) || gameOver != "";
+
+      if (shouldRejectKeyStroke) {
         return;
       }
-      const targetComponent =
-        gridContainerRef.current?.children[currentSquareIndex];
+      const targetTile = wordleGrid.current?.children[wordleTileIndex];
 
-      if (targetComponent) {
-        targetComponent.innerHTML = event.key;
-        setUserWord(userWord + event.key);
+      if (targetTile) {
+        targetTile.textContent = key;
+        setUserWord(userWord + key);
       }
 
-      if ((currentSquareIndex + 1) % 5 === 0 && currentSquareIndex) {
-        const { squareStats: statArray, allCorrect } = evaluateWordCorrectness(
-          userWord + event.key,
-          word as string
+      if ((wordleTileIndex + 1) % 5 === 0 && wordleTileIndex) {
+        const { feedbackArray, isAllLettersCorrect } = evaluateWordCorrectness(
+          userWord + key,
+          secretWord as string
         );
 
-        const front = currentSquareIndex - 4;
-        statArray.map((status: string, index: number) => {
-          gridContainerRef.current?.children[front + index].classList.add(
-            status
-          );
+        const front = wordleTileIndex - 4;
+        console.log(front);
+
+        feedbackArray.map((status: string, index: number) => {
+          wordleGrid.current?.children[front + index].classList.add(status);
         });
 
-        setGameOver(allCorrect ? "won" : "");
-        if (currentSquareIndex === 24 && !allCorrect) {
+        setGameOver(isAllLettersCorrect ? "won" : "");
+        if (wordleTileIndex === 24 && !isAllLettersCorrect) {
           setGameOver("lost");
         }
         setUserWord("");
       }
-      setCurrentSquareIndex((prevSquareIndex) => prevSquareIndex + 1);
+      setWordleTileIndex((prevSquareIndex) => prevSquareIndex + 1);
     };
-    
+
     document.addEventListener("keydown", handleKeyDown);
-    
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentSquareIndex]);
+  }, [wordleTileIndex]);
 
-  const computerSolve = () => {
-    const iterativeSolver = (
-      newWord: string,
-      computerSquareIndex: number,
-      activeStateOfWords: string[] = wordSet
-    ) => {
-      Array.from(newWord).forEach((letter) => {
-        const targetComponent =
-          gridContainerRef.current?.children[computerSquareIndex];
-        if (targetComponent) {
-          targetComponent.innerHTML = letter;
-        }
-        computerSquareIndex++;
-      });
-
-      const { squareStats: statArray, allCorrect } = evaluateWordCorrectness(
-        newWord,
-        word as string
-      );
-
-      const front = computerSquareIndex - 5;
-
-      statArray.map((status: string, index: number) => {
-        gridContainerRef.current?.children[front + index].classList.add(status);
-      });
-
-      const retryInfo = wordleSolver(newWord, statArray, activeStateOfWords);
-
-      if (!allCorrect && computerSquareIndex < 25) {
-        iterativeSolver(
-          retryInfo.retryWord,
-          computerSquareIndex,
-          retryInfo.wordSet
-        );
+  const iterativeSolver = (
+    newWord: string,
+    computerSquareIndex: number,
+    activeStateOfWords: string[] = wordSet
+  ) => {
+    Array.from(newWord).forEach((letter) => {
+      const targetComponent = wordleGrid.current?.children[computerSquareIndex];
+      if (targetComponent) {
+        targetComponent.innerHTML = letter;
       }
-    };
+      computerSquareIndex++;
+    });
 
-    iterativeSolver("false", 0);
+    const { feedbackArray: statArray, isAllLettersCorrect } =
+      evaluateWordCorrectness(newWord, secretWord as string);
+
+    const front = computerSquareIndex - 5;
+
+    statArray.map((status: Feedback, index: number) => {
+      wordleGrid.current?.children[front + index].classList.add(status);
+    });
+
+    const retryInfo = wordleSolver(newWord, statArray, activeStateOfWords);
+
+    if (!isAllLettersCorrect && computerSquareIndex < 25) {
+      iterativeSolver(
+        retryInfo.retryWord,
+        computerSquareIndex,
+        retryInfo.wordSet
+      );
+    }
   };
 
   if (isLoading) {
@@ -133,19 +133,29 @@ const Grid = () => {
     return <div>Error Fetching Word :|</div>;
   }
 
+  if (!secretWord) {
+    return <div>Secret Word not Found</div>;
+  }
+
   return (
     <>
-      <button onClick={computerSolve}>Let Computer Solve</button>
-      <h2 className="message-h1">
-        {gameOver === "won"
-          ? "You win :)"
-          : gameOver === "lost"
-          ? "you lose :("
-          : ""}
-      </h2>
-      <main id="grid" ref={gridContainerRef} key={0}>
+      <button
+        className="button"
+        onClick={() => {
+
+          
+          const isAllSquaresEmpty = Array.from(wordleGrid.current?.children!).every(
+            (child) => child.textContent == ""
+          );
+          isAllSquaresEmpty ?  iterativeSolver("false", 0) : null;
+        }}
+      >
+        Solve 🤖
+      </button>
+      <Message secretWord={secretWord} gameOver={gameOver} />
+      <main id="grid" ref={wordleGrid} key={0}>
         {Array.from({ length: 25 }, (_, index) => (
-          <Square state={""} key={index} identifier={index} />
+          <Tile state={"empty"} key={index} identifier={index} />
         ))}
       </main>
     </>

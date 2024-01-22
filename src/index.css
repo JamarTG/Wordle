@@ -35,56 +35,56 @@ h1 {
   line-height: 1.1;
 }
 
-
 .square {
   animation-name: flip;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: .9rem;
+  padding: 0.9rem;
 
   outline: none;
   font-size: 50px;
   font-weight: bolder;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 3px solid rgb(192, 191, 191);
-
 }
 
-.incorrect-letter {
 
-}
-
-.incorrect-space {
-
-}
 .incorrect {
-  background-color: rgb(186, 185, 185);  
+  background-color: rgb(186, 185, 185);
 }
 .correct {
   background-color: rgb(182, 226, 116);
 }
 
-.square:focus{
+.button {
+  background-color: #3498db;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.square:focus {
   border: 3px solid rgb(111, 199, 226);
   box-sizing: border-box;
 }
-.square:active{
+.square:active {
   border: 2px solid rgb(111, 199, 226);
 }
-
 
 #grid {
   display: grid;
   justify-content: center;
   align-content: center;
-  gap:.3em;
-  grid-template-columns: repeat(5,1fr);
+  gap: 0.3em;
+  grid-template-columns: repeat(5, 1fr);
   border: 3px solid #eee;
-  border-radius: .4rem;
-  padding: .5em;
+  border-radius: 0.4rem;
+  padding: 0.5em;
 }
 
 .wrong-letter {
@@ -100,11 +100,37 @@ h1 {
 }
 
 
-
-.square:hover {
-  animation-duration: 5s;
-}
-
 .message-h1 {
+  text-align: center;
+  color: #333;
   height: 2rem;
+  font-size: 14px;
 }
+
+.win {
+  color: #28a745; 
+}
+
+.lose {
+  color: #dc3545;
+}
+
+
+.flip{
+  animation: flip 1s ease-in-out;
+}
+
+
+
+@keyframes flip {
+  0% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+

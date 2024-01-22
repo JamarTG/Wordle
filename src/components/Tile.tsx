@@ -1,11 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { Feedback } from "../utils/types";
 
-const Square = ({
+const Tile = ({
   identifier: _identifier,
-  state = "",
+  state = "empty",
 }: {
   identifier: number;
-  state: "" | "wrong-letter" | "wrong-place" | "correct";
+  state: Feedback;
 }) => {
   const [letter, _] = useState<string>("");
 
@@ -14,6 +15,6 @@ const Square = ({
       {letter.toLocaleUpperCase()}
     </div>
   );
-};
+}
 
-export default Square;
+export default Tile;

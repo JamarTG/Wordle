@@ -1,6 +1,8 @@
+import { Feedback } from "./types";
+
 const wordleSolver = (
   previousWord: string,
-  previousTryResult: ("wrong-place" | "wrong-letter" | "correct")[],
+  previousTryResult: Feedback [],
   stateOfWords: string[]
 ) => {
   previousTryResult.map((result: string, index: number) => {
